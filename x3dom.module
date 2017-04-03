@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * @file
+ * Adds a formatter for X3D display.
+ *
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function x3dom_field_formatter_info() {
+  return array(
+    /* Machine Name and Default Settings */
+    'x3dom_formatter'  => array(
+      'label'  => t('X3D Interactive Viewer'),
+      /* Only Available to File Fields */
+      'field types'  => array('file'),
+      /* Default Settings */
+      'settings'  => array(
+        'width'  => 500,
+        'height'  => 300,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function x3dom_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  /* This gets the view_mode where our settings are stored */
+  $display = $instance['display'][$view_mode];
+  /* This gets the actual settings */
+  $settings = $display['settings'];
+  /* Initialize the element variable */
+  $element = array();
+  /* Add your width field */
+  $element['width'] = array(
+    '#type'  => 'textfield',
+    '#title'  => t('Width'),
+    '#description'  => t('Enter display width in pixels (e.g., 500)'),
+    '#default_value'  => $settings['width'],
+  );
+  /* Add your height field */
+  $element['height'] = array(
+    '#type'  => 'textfield',
+    '#title'  => t('Height'),
+    '#description'  => t('Enter display height in pixels (e.g., 300)'),
+    '#default_value'  => $settings['height'],
+  );
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function x3dom_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = t('Use an X3D Viewer with dimensions @width width by @height height', array(
+    '@width'  => $settings['width'],
+    '@height'  => $settings['height'],
+  ));
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function x3dom_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  /* Initialize and Get Settings */
+  $element = array();
+  $settings = $display['settings'];
+  /* User-Select Width and Height from Settings Form */
+  $width = $settings['width'];
+  $height = $settings['height'];
+  /* Build X3D Interactive Viewer */
+  $x3dom_module_path = drupal_get_path('module', 'x3dom');
+  $x3dom_library_path = libraries_get_path('x3dom');
+  drupal_add_js($x3dom_library_path . '/x3dom-full.js', 'file',
+    array('type' => 'inline', 'scope' => 'header', 'weight' => 0));
+  drupal_add_js('function viewAll() {
+    var x3dscene = document.getElementById("inline");
+    x3dscene.runtime.showAll();
+    }
+    function resetView() {
+	  var x3dscene = document.getElementById("inline");
+	  x3dscene.runtime.resetView();
+	}',
+      array('type' => 'inline', 'scope' => 'header', 'weight' => 1));
+    drupal_add_js('$(document).ready(function(){
+    $("body").attr("id","model");
+	  });',
+      array('type' => 'inline', 'scope' => 'header', 'weight' => 2));
+    drupal_add_css($x3dom_library_path . '/x3dom.css',
+      array('scope' => 'header', 'weight' => 0));
+    drupal_add_css($x3dom_module_path . '/x3dom-controls.css',
+      array('scope' => 'header', 'weight' => 1));
+    /* Store filepath in module */
+    foreach ($items as $item) {
+      $x3d = $item['uri'];
+    }
+    /* Build Image Controls */
+    $view_all_link = theme('image', array(
+      'path'  => $x3dom_module_path . '/icons/view-all.png',
+      'alt'  => t('View All'),
+      'title'  => t('View All'),
+      'attributes'  => array(
+        'onclick'  => t('viewAll();return false;'),
+      )
+    ));
+    $reset_view_link = theme('image', array(
+      'path'  => $x3dom_module_path . '/icons/reset.png',
+      'alt'  => t('Reset View'),
+      'title'  => t('Reset View'),
+      'attributes'  => array(
+        'onclick'  => t('resetView();return false;'),
+      )
+    ));
+    /* Display single X3D file */
+    if (isset($x3d)):
+      $x3d_url = file_create_url($x3d);
+      $element[0]['#markup'] = t('
+        <X3D xmlns="http://www.x3dom.org/x3dom" id="inline" showlog="false" showstat="false" x="0px" y="0px" width="' . $width . '" height="' . $height . '">
+          <Scene>
+            <Inline url="' . $x3d_url . '" id="display" render="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" load="true" namespacename=""></Inline>
+          </Scene>
+        </X3D>
+        <!-- Display X3D Controls -->
+        <div class="controls">
+          ' . $view_all_link . '
+          ' . $reset_view_link . '
+        </div>');
+    endif;
+    return $element;
+}
