@@ -3,7 +3,6 @@
 /**
  * @file
  * Adds a formatter for X3D display.
- *
  */
 
 /**
@@ -89,49 +88,51 @@ function x3dom_field_formatter_view($entity_type, $entity, $field, $instance, $l
 	  x3dscene.runtime.resetView();
 	}',
       array('type' => 'inline', 'scope' => 'header', 'weight' => 1));
-    drupal_add_js('$(document).ready(function(){
+  drupal_add_js('$(document).ready(function(){
     $("body").attr("id","model");
 	  });',
       array('type' => 'inline', 'scope' => 'header', 'weight' => 2));
-    drupal_add_css($x3dom_library_path . '/x3dom.css',
+  drupal_add_css($x3dom_library_path . '/x3dom.css',
       array('scope' => 'header', 'weight' => 0));
-    drupal_add_css($x3dom_module_path . '/x3dom-controls.css',
+  drupal_add_css($x3dom_module_path . '/x3dom-controls.css',
       array('scope' => 'header', 'weight' => 1));
-    /* Store filepath in module */
-    foreach ($items as $item) {
-      $x3d = $item['uri'];
-    }
-    /* Build Image Controls */
-    $view_all_link = theme('image', array(
+  /* Store filepath in module */
+  foreach ($items as $item) {
+    $x3d = $item['uri'];
+  }
+  /* Build Image Controls */
+  $view_all_link = theme('image', array(
       'path'  => $x3dom_module_path . '/icons/view-all.png',
       'alt'  => t('View All'),
       'title'  => t('View All'),
       'attributes'  => array(
         'onclick'  => t('viewAll();return false;'),
-      )
+      ),
     ));
-    $reset_view_link = theme('image', array(
+  $reset_view_link = theme('image', array(
       'path'  => $x3dom_module_path . '/icons/reset.png',
       'alt'  => t('Reset View'),
       'title'  => t('Reset View'),
       'attributes'  => array(
         'onclick'  => t('resetView();return false;'),
-      )
+      ),
     ));
-    /* Display single X3D file */
-    if (isset($x3d)):
-      $x3d_url = file_create_url($x3d);
-      $element[0]['#markup'] = t('
-        <X3D xmlns="http://www.x3dom.org/x3dom" id="inline" showlog="false" showstat="false" x="0px" y="0px" width="' . $width . '" height="' . $height . '">
-          <Scene>
-            <Inline url="' . $x3d_url . '" id="display" render="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" load="true" namespacename=""></Inline>
+  /* Display single X3D file */
+  if (isset($x3d)) {
+    $x3d_url = file_create_url($x3d);
+    $markup = sprintf('
+        <X3D xmlns="http://www.web3d.org/specifications/x3d-namespace" id="inline" showStat="false" x="0px" y="0px" width="%d" height="%d">
+          <Scene DEF="scene">
+            <Background skyColor="1 1 1"></Background>
+            <Inline id="display" url="%s" />
           </Scene>
         </X3D>
         <!-- Display X3D Controls -->
         <div class="controls">
-          ' . $view_all_link . '
-          ' . $reset_view_link . '
-        </div>');
-    endif;
-    return $element;
+          %s
+          %s
+        </div>', $width, $height, $x3d_url, $view_all_link, $reset_view_link);
+    $element[0]['#markup'] = $markup;
+  }
+  return $element;
 }
