@@ -101,6 +101,9 @@ Mailing lists for technical questions related to X3DOM are as follows:
 MAINTAINERS & SPONSOR
 ---------------------
 Current maintainers of X3DOM module:
+ - NIH 3D Print Team - https://www.drupal.org/u/nih3dprint
+
+Past maintainers of X3DOM module:
  - Makazi Mtingwa (MakaziMtingwa) - http://www.drupal.org/user/2995707
  - Nick Weber (webermn) - http://drupal.org/user/2791697
 
