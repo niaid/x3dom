@@ -1,0 +1,6 @@
+name = X3DOM
+description = "X3DOM Tools"
+package = Fields
+dependencies[] = file
+dependencies[] = libraries
+core = 7.x
